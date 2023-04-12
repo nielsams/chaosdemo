@@ -24,6 +24,11 @@ var imageReference = {
   version: 'latest'
 }
 
+// This is the user managed identity used by the chaos agent on VMSS to report back to the Chaos Service
+resource chaosagent_identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${nameprefix}-chaos-id'
+  location: location
+}
 
 resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2021-03-01' = {
   name: vmssName
@@ -32,6 +37,12 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2021-03-01' = {
     name: vmssVmSku
     tier: 'Standard'
     capacity: vmssInstanceCount
+  }
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${chaosagent_identity.id}': {}
+    }
   }
   properties: {
     overprovision: true
@@ -82,7 +93,6 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2021-03-01' = {
           {
             name: 'customScript'
             properties: {
-              forceUpdateTag: 'v2'
               publisher: 'Microsoft.Compute'
               type: 'CustomScriptExtension'
               typeHandlerVersion: '1.8'
@@ -97,3 +107,22 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2021-03-01' = {
     }
   }
 }
+
+// This extension installs IIS and deploys our aspx payload
+// resource vmss_customscript 'Microsoft.Compute/virtualMachineScaleSets/extensions@2022-11-01' = {
+//   name: 'customScript'
+//   parent: vmss
+//   properties: {
+//     publisher: 'Microsoft.Compute'
+//     type: 'CustomScriptExtension'
+//     typeHandlerVersion: '1.8'
+//     autoUpgradeMinorVersion: true
+//     protectedSettings: {
+//       commandToExecute: loadTextContent('../../content/iis-setup.cmd')
+//     }
+//   }
+// }
+
+
+
+output vmssName string = vmssName

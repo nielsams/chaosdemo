@@ -143,3 +143,4 @@ resource appGateway 'Microsoft.Network/applicationGateways@2020-06-01' = {
 
 output appGatewayName string = appGatewayName
 output appGatewayBackendPoolName string = appGatewayBackendPoolName
+output appGatewayDNSName string = publicIp.properties.dnsSettings.fqdn

@@ -51,11 +51,12 @@ module appgateway './resources/appgateway.bicep' = {
   }
 }
 
-// module chaos './resources/chaos.bicep' = {
-//   name: '${rg.name}-chaos'
-//   scope: rg
-//   params: {
-//     nameprefix: toLower(name)
-//     location: rg.location
-//   }
-// }
+module chaos './resources/chaos.bicep' = {
+  name: '${rg.name}-chaos'
+  scope: rg
+  params: {
+    nameprefix: toLower(name)
+    location: rg.location
+    vmssName: vmss.outputs.vmssName
+  }
+}

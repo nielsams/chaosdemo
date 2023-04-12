@@ -12,35 +12,6 @@ var machineSubnetName = 'machines'
 var machineSubnetPrefix = '10.12.1.0/24'
 var nsgAppGatewayName = '${nameprefix}agwnsg'
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' = {
-  name: vnetName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        vnetAddressPrefix
-      ]
-    }
-    subnets: [
-      {
-        name: appGatewaySubnetName
-        properties: {
-          addressPrefix: appGatewaySubnetPrefix
-          networkSecurityGroup: {
-            id: resourceId('Microsoft.Network/networkSecurityGroups', nsgAppGatewayName)
-          }
-        }
-      }
-      {
-        name: machineSubnetName
-        properties: {
-          addressPrefix: machineSubnetPrefix
-        }
-      }
-    ]
-  }
-}
-
 resource nsgAppGateway 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   name: nsgAppGatewayName
   location: location
@@ -74,6 +45,38 @@ resource nsgAppGateway 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
       }
     ]
   }
+}
+
+resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' = {
+  name: vnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        vnetAddressPrefix
+      ]
+    }
+    subnets: [
+      {
+        name: appGatewaySubnetName
+        properties: {
+          addressPrefix: appGatewaySubnetPrefix
+          networkSecurityGroup: {
+            id: resourceId('Microsoft.Network/networkSecurityGroups', nsgAppGatewayName)
+          }
+        }
+      }
+      {
+        name: machineSubnetName
+        properties: {
+          addressPrefix: machineSubnetPrefix
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    nsgAppGateway
+  ]
 }
 
 output vnetName string = vnetName
