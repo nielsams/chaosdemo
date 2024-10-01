@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Call the VMSS Backend</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+
+    #app {
+      display:flex;
+      flex-wrap: wrap;
+      font-size: larger;
+    }
+
+
+    #counters {
+      flex: 1;
+      order: 1;
+      height: 500px;
+    }
+
+    #serverReturns {
+      flex: 1;
+      order: 2;
+      height:500px;
+      overflow: hidden;
+    }
+
+    #buttons {
+      flex-basis: 100%;
+      order: 3;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="counters">
+      <div><b>Counters</b></div>
+      <div>Total: {{ serverReturns.length }}</div>
+      <div v-for="(count, ip) in counter" v-bind:key="ip">{{ ip }}: {{ count }}</div>
+    </div>
+    
+    <div id="serverReturns">
+      <div><b>Server Response</b></div>
+      <div v-for="row in serverReturnsView" v-bind:key="row">{{ row }}</div> 
+    </div>
+
+    <div id="buttons">
+      <button @click="start">Start</button>
+      <button @click="stop">Stop</button>
+      <button @click="reset">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        responseData: null,
+        serverReturns: [],
+        counter: {},
+        isRunning: false
+      },
+      async created() {
+        
+      },
+      computed: {
+        serverReturnsView() {
+          return this.serverReturns.slice().reverse();
+        }
+      },
+      methods: {
+        start() {
+          this.isRunning = true;
+          this.run();
+        },
+        stop() {
+          this.isRunning = false;
+        },
+        reset() {
+          this.serverReturns = [];
+          this.counter = {};
+        },
+        async run() {
+          for(;;) {
+            if(!this.isRunning) {
+              break;
+            }
+            await new Promise(r => setTimeout(r, 1000));
+            var apiResult = await this.fetchData();
+            this.serverReturns.push(apiResult);
+
+            const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
+            var ip = apiResult.match(ipRegex);
+            if(ip == null) {
+              ip = 'Unknown';
+            }
+            if (this.counter[ip]) {
+              this.counter[ip]++;
+            } else {
+              this.counter[ip] = 1;
+            }
+          }
+        },
+        async fetchData() {
+          try {
+            const response = await axios.get('/api', {
+              timeout: 500
+            });
+            const data = response.data;
+            const status = response.status;
+            return status + ' ' + data;
+
+          } catch (error) {
+            return 'Error Response: ' + error.message;
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
