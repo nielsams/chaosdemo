@@ -106,7 +106,7 @@
         async fetchData() {
           try {
             const response = await axios.get('/api', {
-              timeout: 500
+              timeout: 750
             });
             const data = response.data;
             const status = response.status;
